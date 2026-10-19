@@ -1,0 +1,120 @@
+---
+title: 'Assignment 1 MAST90125: Bayesian Statistical Learning'
+header-includes:
+- \usepackage{bm}
+- \usepackage{amsmath}
+output:
+  pdf_document:
+    number_sections: no
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Due: 11:59pm Sunday 23 August 2026**  
+\vspace{5 mm}
+
+**There are places in this assignment where R code will be required. Therefore set the random seed so your assignment result is reproducible.**
+
+```{r}
+set.seed(123456)  #Please change random seed to your student id number.
+```
+
+**Please save this R markdown document and write your answers in it. Between your answer to each question, ensure there is sufficient space for marker comments by using the command** \begin{verbatim} \newpage \end{verbatim}
+
+## Question One (5 marks)
+
+Suppose two data observations $y_1$ and $y_2$ are independently generated from a data generative model with pdf $p(y|\theta)$. Let $p(\theta)$ be a prior pdf of $\theta$, and $p(\theta|y_1,y_2)$, $p(\theta|y_1)$ and $p(\theta|y_2)$ be the posterior pdf's conditional on $(y_1, y_2)$, $y_1$ and $y_2$, respectively.
+
+a) Is it valid to estimate $p(\theta|y_1)$ and $p(\theta|y_2)$ seperately, and then obtain the posterior $p(\theta|y_1,y_2)$ as $p(\theta|y_1, y_2)=p(\theta|y_1)p(\theta|y_2)$? Justify your answer using Bayes Theorem.
+
+b) If you really want to use $p(\theta|y_1)$ and $p(\theta|y_2)$ to obtain $p(\theta|y_1,y_2)$, what else is needed in order to do so? Provide the answer and justification. 
+
+
+## Question Two (5 marks)
+
+Medical researchers wish to study the performance of a diagnostic test. Prior studies suggest the underlying probability of disease (event $A$) is $p_A$. To determine the effectiveness of the diagnostic test (event $B$ = testing positive), a case-control study was undertaken. Both cases and controls were continuously added to the study to be tested until $d_1$ cases tested positive, and $d_2$ controls tested negative, respectively. Here $d_1$ and $d_2$ are pre-specified.
+
+a) Let observation $n_{\bar{B}|A}$ be the number of cases testing negative, and observation $n_{{B}|\bar{A}}$ be the number of controls testing positive. Identify the likelihood of $n_{\bar{B}|A}$ and $n_{{B}|\bar{A}}$, respectively, using the corresponding probability mass functions (pmf's) conditional on appropriate parameter(s). 
+
+b) Identify a suitable conjugate prior for each parameter used in a).  
+
+c) Determine the posterior distribution for each parameter used in a). 
+
+
+## Question Three (5 marks)
+
+As part of an investigation into traffic flows, a study was proposed to count the number of vehicles passing through an intersection each minute between 5 pm and 6 pm for one week. The researchers have decided to assume the resulting counts are $i.i.d.$ both within and between days.
+
+a) Specify an appropriate likelihood function for the data in the above situation. Also derive the Jeffreys' prior for the involved parameter.  
+
+
+b) In this case, is Jeffreys' prior improper? Justify your answer. 
+
+c) In this case does Jeffreys' prior satisfy the criterion: 
+\[ \text{Posterior} \propto \text{Likelihood}? \] 
+Justify your answer.
+
+
+## Question Four (11 marks)
+
+To comply with food labelling regulations, a manufacturer of certain product (e.g. chocolate in packs) must prove that 99\% of its produced packs are each within 7g of the stated weight $\mu=250$g.   
+
+The manufacturer knows that the average weight of its produced packs equals the stated weight. It also knows that the machinery has been designed such that the respective weights of the products are normally distributed with mean equal to the stated weight and an unknown variance $\sigma^2$. To test the machinery is working to the specification, the company randomly selected $n=100$ packs from the production lines and calculated the residual ($y_i - \mu$) weight. They reported the sum of squared residuals $\mbox{SSR} = \sum_{i=1}^n(y_i - \mu)^2$ was 572.78.   
+
+a) Let $\theta=\sigma^2$ be the parameter on which you wish to make inference. By appropriate manipulation of the likelihood of $(y_1,\ldots, y_n)$, demonstrate that SSR is the sufficient statistic for $\theta$.
+
+b) Choose an appropriate one-to-one transformation $f(\theta)$ so that $f(\theta)$ represents the precision parameter in the likelihood of $(y_1,\ldots, y_n)$. Write down a conjugate prior for the new parameter $\tau=f(\theta)$.
+
+c) Determine the posterior distribution $p(f(\theta)|y_1, \ldots, y_n)$. Substituting 1 for the hyper-parameters of the prior in b), determine the 95\% central credible interval for $\theta$.
+
+d) Using the posterior distribution in c), determine the 95\% highest posterior density interval for $\theta$, and compare it to the 95\% central credible interval. 
+
+e) Do you believe, based on the above posterior inference, that the machinery used by this manufacturer satisfies the requirement that 99\% of its products with the stated weights 250g per pack are within 7g of the stated weight? 
+
+
+## Question Five (9 marks)
+
+There are $N = 112$ students enrolled in the Master of Science in the School of Mathematics and Statistics. At the end of the semester, $n = 35$ responses were received to an experience survey sent to Master's students. Among the questions asked was whether they felt adequate support was provided by the School. In $y = 17$ of the responses, the answer was yes.
+
+a) Regarding the $n=35$ students responding as the sample obtained from sampling with replacement (approximately), write down an appropriate single parameter distribution $p(y|\theta)$ corresponding to the likelihood of $y$.
+
+b) Identify a prior distribution, $p(\theta)$ that is conjugate with the likelihood chosen in a).
+
+c) Determine the posterior distribution $p(\theta|y)$ based on your choices of likelihood and prior in a) and b). 
+
+d) Determine the posterior predictive distribution $p(\tilde{y}|y)$. 
+\vspace{30pt}
+
+## Some useful density functions
+
+\begin{itemize}
+
+\item Normal distribution: $y\sim N(\mu, \sigma^2)$
+
+\[ p(y|\mu,\sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(y-\mu)^2}{2\sigma^2}}  \]
+
+\item Binomial distribution: $y\sim \mbox{Bin}(n,p)$
+
+\[ \Pr(y|n,p) = {{n}\choose{y}}p^y(1-p)^{n-y} \]
+
+\item Poisson distribution: $y\sim \mbox{Poi}(\lambda)$
+
+\[ \Pr(y|\lambda) = \frac{\lambda^y}{y!}e^{-\lambda} \]
+
+\item Negative binomial distribution: $y\sim \mbox{NBin}(d,p)$ where $y$ is the number of Bernoulli failures before the $d$-th success and $p$ is the probability of a Bernoulli failure
+\[ \Pr(y|d,p) = {{y+d-1}\choose{d-1}}p^y (1-p)^{d} \]
+
+\item Gamma distribution: $y\sim \mbox{Ga}(\alpha,\beta)$
+
+\[  p(y|\alpha,\beta) = \frac{\beta^\alpha}{\Gamma(\alpha)}y^{\alpha-1}e^{-\beta y} \]
+
+\item Beta distribution: $y\sim\mbox{Beta}(\alpha,\beta)$
+
+\[ p(y|\alpha,\beta) = \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}y^{\alpha-1}(1-y)^{\beta-1} \]
+\end{itemize}
+
+
