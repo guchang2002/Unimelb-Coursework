@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ccc-rest-api
+  labels:
+    app: ccc-rest-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ccc-rest-api
+  template:
+    metadata:
+      labels:
+        app: ccc-rest-api
+    spec:
+      containers:
+        - name: api
+          image: ${CI_REGISTRY_IMAGE}/ccc-rest-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: ES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: fission-es-config
+                  key: ES_URL
+            - name: ES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: es-creds
+                  key: username
+                  optional: true
+            - name: ES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: es-creds
+                  key: password
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ccc-rest-api
+  labels:
+    app: ccc-rest-api
+spec:
+  selector:
+    app: ccc-rest-api
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP

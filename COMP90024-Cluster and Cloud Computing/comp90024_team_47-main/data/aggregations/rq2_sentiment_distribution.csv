@@ -1,0 +1,4 @@
+sentiment_label,Mastodon_count,BlueSky_all_count,BlueSky_clean_count,Mastodon_pct,BlueSky_all_pct,BlueSky_clean_pct
+positive,5779,4924,4561,42.2,42.1,42.0
+neutral,4771,3458,3194,34.8,29.6,29.4
+negative,3160,3308,3112,23.0,28.3,28.6

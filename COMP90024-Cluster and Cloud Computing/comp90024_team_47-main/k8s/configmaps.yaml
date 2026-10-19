@@ -1,0 +1,21 @@
+# Fission function configuration via K8s ConfigMaps.
+# Apply with: kubectl apply -f k8s/configmaps.yaml
+---
+# Internal ES URL for Fission functions (cluster-internal DNS).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fission-es-config
+  namespace: default
+data:
+  ES_URL: "https://elasticsearch-es-http.elastic.svc.cluster.local:9200"
+---
+# Cache for BlueSky refreshJwt (used by bluesky-streaming function).
+# Initially empty; the function will populate it on first run.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bluesky-jwt
+  namespace: default
+data:
+  refreshJwt: ""

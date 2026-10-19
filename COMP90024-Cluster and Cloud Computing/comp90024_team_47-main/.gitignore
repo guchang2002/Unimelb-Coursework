@@ -1,0 +1,75 @@
+# ============================================
+# (Assignment 2 PDF: "Extraneous files... should not be included")
+# ============================================
+.idea/
+.vscode/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+node_modules/
+
+# ============================================
+#  SECRETS / CREDENTIALS
+# ============================================
+# Kubernetes
+config
+config.*.yaml
+*.kubeconfig
+
+# OpenStack
+*-openrc.sh
+
+# Generic
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.token
+credentials.json
+secrets.json
+
+# ============================================
+# Python
+# ============================================
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+build/
+dist/
+*.so
+
+# ============================================
+# Jupyter
+# ============================================
+.ipynb_checkpoints/
+*.ipynb_meta
+
+# ============================================
+# OS
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Logs and temp
+# ============================================
+*.log
+tmp/
+temp/
+*.tmp
+*.bak
+*~
+
+# Fission build artifacts
+backend/fission/**/build/
+backend/fission/**/*.zip
+
+# K8s secrets (never commit live credentials)
+k8s/secrets.yaml
+k8s/**/secrets.yaml
+sandbox/

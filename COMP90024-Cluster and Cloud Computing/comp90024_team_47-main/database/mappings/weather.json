@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "id":             { "type": "keyword" },
+      "city":           { "type": "keyword" },
+      "date":           { "type": "date", "format": "yyyy-MM-dd" },
+
+      "temp_max":       { "type": "float" },
+      "temp_min":       { "type": "float" },
+      "temp_mean":      { "type": "float" },
+      "apparent_temp_max": { "type": "float" },
+
+      "precipitation_mm": { "type": "float" },
+      "rain_mm":          { "type": "float" },
+      "is_rainy":       { "type": "boolean" },
+
+      "humidity":       { "type": "float" },
+      "wind_speed_max": { "type": "float" },
+
+      "weather_code":   { "type": "integer" },
+      "weather_condition": { "type": "keyword" },
+
+      "is_extreme_hot":  { "type": "boolean" },
+      "is_extreme_cold": { "type": "boolean" },
+      "is_heavy_rain":   { "type": "boolean" },
+
+      "lat":            { "type": "float" },
+      "lon":            { "type": "float" },
+      "location":       { "type": "geo_point" },
+
+      "source":         { "type": "keyword" },
+      "fetched_at":     { "type": "date" }
+    }
+  }
+}

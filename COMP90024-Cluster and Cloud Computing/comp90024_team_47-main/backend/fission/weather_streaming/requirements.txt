@@ -1,0 +1,2 @@
+# weather_streaming has no extra dependencies beyond what Fission provides
+# (requests, urllib3 come with python env)

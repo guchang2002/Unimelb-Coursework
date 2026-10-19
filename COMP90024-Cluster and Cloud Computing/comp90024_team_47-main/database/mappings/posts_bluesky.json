@@ -1,0 +1,57 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "id":              { "type": "keyword" },
+      "platform":        { "type": "keyword" },
+      "uri":             { "type": "keyword" },
+      "cid":             { "type": "keyword" },
+
+      "author_did":      { "type": "keyword" },
+      "author_handle":   { "type": "keyword" },
+      "author_display_name": { "type": "keyword" },
+      "author_is_bot":   { "type": "boolean" },
+
+      "content_clean": {
+        "type": "text",
+        "fields": {
+          "raw": { "type": "keyword", "ignore_above": 256 }
+        }
+      },
+      "content_length":  { "type": "integer" },
+
+      "language":        { "type": "keyword" },
+      "tags":            { "type": "keyword" },
+      "mentions":        { "type": "keyword" },
+      "url":             { "type": "keyword" },
+
+      "city":            { "type": "keyword" },
+      "city_inferred_from": { "type": "keyword" },
+
+      "created_at":      { "type": "date" },
+      "date":            { "type": "date", "format": "yyyy-MM-dd" },
+      "harvested_at":    { "type": "date" },
+      "harvest_strategy":{ "type": "keyword" },
+
+      "sentiment_compound": { "type": "float" },
+      "sentiment_pos":      { "type": "float" },
+      "sentiment_neg":      { "type": "float" },
+      "sentiment_neu":      { "type": "float" },
+      "sentiment_label":    { "type": "keyword" },
+
+      "weather_keywords":   { "type": "keyword" },
+      "beverage_keywords":  { "type": "keyword" },
+
+      "like_count":         { "type": "integer" },
+      "repost_count":       { "type": "integer" },
+      "reply_count":        { "type": "integer" },
+      "engagement_score":   { "type": "integer" },
+
+      "raw_payload":        { "type": "object", "enabled": false }
+    }
+  }
+}
