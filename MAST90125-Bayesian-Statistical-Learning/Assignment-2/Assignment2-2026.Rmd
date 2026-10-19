@@ -1,0 +1,1362 @@
+---
+title: 'Assignment 2 of MAST90125: Bayesian Statistical Learning'
+header-includes:
+   - \usepackage{bm}
+   - \usepackage{amsmath}
+output: 
+  pdf_document:
+    number_sections: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(mvtnorm)
+library(coda)
+```
+
+**Due: 11:59pm Sunday, 4 October 2026**  
+\vspace{5 mm}
+
+**There are places in this assignment where R code will be required. Therefore set the random seed so assignment is reproducible.**
+
+```{r}
+set.seed(1628985)  #Please change random seed to your student id number.
+# Loading datasets
+data= read.table("C:/Users/Leohard/Desktop/90125/heights.txt",header=TRUE) # change it to the absolute path if needed
+data_f<-data[data$sex ==0,]  #Subsetting data to female only
+data_m<-data[data$sex ==1,]  #Subsetting data to male only
+CovidAustralia= read.csv("C:/Users/Leohard/Desktop/90125/CovidAustralia.csv",header=TRUE) 
+     # change it to the absolute path if needed
+```
+
+## Question One (6 marks)
+
+Suppose the data $\mathbf{y}$ follows a pdf $p(\mathbf{y}|\bm{\theta})$ where $\bm{\theta}=(\theta_1, \theta_2)$ is a two-dimensional vector parameter of interest. Our objective is to use Gibbs sampler to simulate samples of $\bm{\theta}$ from the posterior pdf $p(\bm{\theta}|\mathbf{y})$. 
+
+a) The transition pdf $J(\bm{\theta}^{(t-1)}, \bm{\theta}^{(t)})$ used in generating a Markov chain $\{\bm{\theta}^{(0)}, \bm{\theta}^{(1)}, \cdots, \bm{\theta}^{(t-1)}, \bm{\theta}^{(t)}, \cdots\}$ by the Gibbs sampler is understood as the pdf of the Markov chain moving from state $\bm{\theta}^{(t-1)}$ to state $\bm{\theta}^{(t)}$. Provide an expression for $J(\bm{\theta}^{(t-1)}, \bm{\theta}^{(t)})$ using the information provided.  Then prove that the detailed balance condition is satisfied for the specified transition pdf $J(\bm{\theta}^{(t-1)}, \bm{\theta}^{(t)})$ so that the posterior pdf $p(\bm{\theta}|\mathbf{y})$ is the unique stationary pdf assocoated with the generated Markov chain.
+## Question 1(a)
+
+Let
+
+\[
+\boldsymbol{\theta}^{(t-1)}
+=
+\left(
+\theta_1^{(t-1)},\theta_2^{(t-1)}
+\right),
+\qquad
+\boldsymbol{\theta}^{(t)}
+=
+\left(
+\theta_1^{(t)},\theta_2^{(t)}
+\right).
+\]
+
+In the forward Gibbs update,
+
+\[
+\theta_1^{(t)}
+\sim
+p\left(\theta_1\mid\theta_2^{(t-1)},y\right),
+\]
+
+followed by
+
+\[
+\theta_2^{(t)}
+\sim
+p\left(\theta_2\mid\theta_1^{(t)},y\right).
+\]
+
+Hence the transition density is
+
+\[
+J\left(
+\boldsymbol{\theta}^{(t-1)},
+\boldsymbol{\theta}^{(t)}
+\right)
+=
+p\left(
+\theta_1^{(t)}
+\mid
+\theta_2^{(t-1)},y
+\right)
+p\left(
+\theta_2^{(t)}
+\mid
+\theta_1^{(t)},y
+\right).
+\]
+
+For the reverse transition, the updating order is reversed, so
+
+\[
+J\left(
+\boldsymbol{\theta}^{(t)},
+\boldsymbol{\theta}^{(t-1)}
+\right)
+=
+p\left(
+\theta_2^{(t-1)}
+\mid
+\theta_1^{(t)},y
+\right)
+p\left(
+\theta_1^{(t-1)}
+\mid
+\theta_2^{(t-1)},y
+\right).
+\]
+
+Now,
+
+\[
+\begin{aligned}
+& p\left(
+\boldsymbol{\theta}^{(t-1)}
+\mid y
+\right)
+J\left(
+\boldsymbol{\theta}^{(t-1)},
+\boldsymbol{\theta}^{(t)}
+\right) \\
+&=
+p\left(
+\theta_1^{(t-1)}
+\mid
+\theta_2^{(t-1)},y
+\right)
+p\left(
+\theta_2^{(t-1)}
+\mid y
+\right)
+p\left(
+\theta_1^{(t)}
+\mid
+\theta_2^{(t-1)},y
+\right)
+p\left(
+\theta_2^{(t)}
+\mid
+\theta_1^{(t)},y
+\right).
+\end{aligned}
+\]
+
+Using
+
+\[
+p\left(
+\theta_2^{(t-1)}
+\mid y
+\right)
+p\left(
+\theta_1^{(t)}
+\mid
+\theta_2^{(t-1)},y
+\right)
+=
+p\left(
+\theta_1^{(t)},
+\theta_2^{(t-1)}
+\mid y
+\right),
+\]
+
+and
+
+\[
+p\left(
+\theta_1^{(t)},
+\theta_2^{(t-1)}
+\mid y
+\right)
+=
+p\left(
+\theta_2^{(t-1)}
+\mid
+\theta_1^{(t)},y
+\right)
+p\left(
+\theta_1^{(t)}
+\mid y
+\right),
+\]
+
+we obtain
+
+\[
+\begin{aligned}
+& p\left(
+\boldsymbol{\theta}^{(t-1)}
+\mid y
+\right)
+J\left(
+\boldsymbol{\theta}^{(t-1)},
+\boldsymbol{\theta}^{(t)}
+\right) \\
+&=
+p\left(
+\boldsymbol{\theta}^{(t)}
+\mid y
+\right)
+J\left(
+\boldsymbol{\theta}^{(t)},
+\boldsymbol{\theta}^{(t-1)}
+\right).
+\end{aligned}
+\]
+
+Therefore the detailed balance condition is satisfied, so
+\(p(\boldsymbol{\theta}\mid y)\) is the stationary distribution of the Gibbs Markov chain. 
+
+b) Show that $\int p(\bm{\theta}^{(t-1)}|\mathbf{y})J(\bm{\theta}^{(t-1)}, \bm{\theta}^{(t)}) d\bm{\theta}^{(t-1)}=p(\bm{\theta}^{(t)}|\mathbf{y})$ holds. Also interpret this result regarding the ergodicity of the generated Markov chain.
+Using the transition density obtained in part (a),
+
+\[
+J\left(
+\boldsymbol{\theta}^{(t-1)},
+\boldsymbol{\theta}^{(t)}
+\right)
+=
+p\left(
+\theta_1^{(t)}
+\mid
+\theta_2^{(t-1)},y
+\right)
+p\left(
+\theta_2^{(t)}
+\mid
+\theta_1^{(t)},y
+\right).
+\]
+
+Then
+
+\[
+\begin{aligned}
+&\int
+p\left(
+\boldsymbol{\theta}^{(t-1)}\mid y
+\right)
+J\left(
+\boldsymbol{\theta}^{(t-1)},
+\boldsymbol{\theta}^{(t)}
+\right)
+d\boldsymbol{\theta}^{(t-1)}
+\\
+&=
+\int\int
+p\left(
+\theta_1^{(t-1)},\theta_2^{(t-1)}
+\mid y
+\right)
+p\left(
+\theta_1^{(t)}
+\mid
+\theta_2^{(t-1)},y
+\right)
+p\left(
+\theta_2^{(t)}
+\mid
+\theta_1^{(t)},y
+\right)
+d\theta_1^{(t-1)}
+d\theta_2^{(t-1)}.
+\end{aligned}
+\]
+
+Since
+
+\[
+\int
+p\left(
+\theta_1^{(t-1)},\theta_2^{(t-1)}
+\mid y
+\right)
+d\theta_1^{(t-1)}
+=
+p\left(
+\theta_2^{(t-1)}\mid y
+\right),
+\]
+
+we have
+
+\[
+\begin{aligned}
+&=
+p\left(
+\theta_2^{(t)}
+\mid
+\theta_1^{(t)},y
+\right)
+\int
+p\left(
+\theta_2^{(t-1)}\mid y
+\right)
+p\left(
+\theta_1^{(t)}
+\mid
+\theta_2^{(t-1)},y
+\right)
+d\theta_2^{(t-1)}
+\\
+&=
+p\left(
+\theta_2^{(t)}
+\mid
+\theta_1^{(t)},y
+\right)
+p\left(
+\theta_1^{(t)}\mid y
+\right)
+\\
+&=
+p\left(
+\boldsymbol{\theta}^{(t)}\mid y
+\right).
+\end{aligned}
+\]
+
+Therefore,
+
+\[
+\boxed{
+\int
+p\left(
+\boldsymbol{\theta}^{(t-1)}\mid y
+\right)
+J\left(
+\boldsymbol{\theta}^{(t-1)},
+\boldsymbol{\theta}^{(t)}
+\right)
+d\boldsymbol{\theta}^{(t-1)}
+=
+p\left(
+\boldsymbol{\theta}^{(t)}\mid y
+\right)
+}
+\]
+
+which shows that \(p(\boldsymbol{\theta}\mid y)\) is invariant under the Gibbs transition and hence is a stationary distribution of the generated Markov chain.
+
+If the generated Markov chain is irreducible, aperiodic, and all its regions are nonnull and recurrent, then the chain is ergodic. Therefore, it has a unique stationary distribution. Since \(p(\boldsymbol{\theta}\mid y)\) has been shown to be stationary, the chain converges to \(p(\boldsymbol{\theta}\mid y)\) as the number of iterations increases.
+
+
+## Question Two (23 marks)
+
+Consider the following data extracted from a study on human height: 
+
+600 individuals were recruited to have their heights and other variables (features) measured. The measured variables are described below:
+
+\begin{itemize}
+\item \texttt{height}: height of participant, measured in cm. 
+\item \texttt{mother}: Difference from mean female height for biological mother of participant, corrected for maternal age, measured in cm.
+\item  \texttt{father}: Difference from mean male height for biological father of participant, corrected for paternal age, measured in cm.
+\item \texttt{age}: Age in years of participant (range 21-50).
+\item \texttt{sex}: Gender of participant ($female = 0, male = 1$).
+\end{itemize}
+
+
+The data required to answer this question is \texttt{heights.txt}, which can be downloaded from Canvas.
+
+a) Consider the following linear regression model,
+
+\[ {\bf y} = {\bf X}\bm \beta + \bm \epsilon, \quad \bm \epsilon \sim \mathcal{N}({\bf 0},\sigma^2{\bf I}_n).  \]
+
+
+Assume that the priors are $p(\bm \beta) \propto 1$, an improper flat prior; and $p(\tau) = \text{Ga}(0,0)$, an improper Gamma prior.
+
+**Task:** Determine the marginal posterior for the precision parameter $\tau = (\sigma^2)^{-1}$, $p(\tau | {\bf y})$, and the conditional posterior for $\bm \beta$, $p(\bm \beta| \tau, {\bf y})$. Show details of your work.
+
+The model is
+
+\[
+\mathbf y=X\boldsymbol{\beta}+\boldsymbol{\epsilon},
+\qquad
+\boldsymbol{\epsilon}\sim N(\mathbf 0,\sigma^2I_n),
+\]
+
+with
+
+\[
+\tau=\frac{1}{\sigma^2}.
+\]
+
+Hence,
+
+\[
+p(\mathbf y\mid\boldsymbol{\beta},\tau)
+\propto
+\tau^{n/2}
+\exp\left[
+-\frac{\tau}{2}
+(\mathbf y-X\boldsymbol{\beta})'
+(\mathbf y-X\boldsymbol{\beta})
+\right].
+\]
+
+Using the priors
+
+\[
+p(\boldsymbol{\beta})\propto1,
+\qquad
+p(\tau)\propto\tau^{-1},
+\]
+
+the joint posterior is
+
+\[
+p(\boldsymbol{\beta},\tau\mid\mathbf y)
+\propto
+\tau^{n/2-1}
+\exp\left[
+-\frac{\tau}{2}
+(\mathbf y-X\boldsymbol{\beta})'
+(\mathbf y-X\boldsymbol{\beta})
+\right].
+\]
+
+Let
+
+\[
+\hat{\boldsymbol{\beta}}=(X'X)^{-1}X'\mathbf y
+\]
+
+and
+
+\[
+s^2=
+\frac{
+(\mathbf y-X\hat{\boldsymbol{\beta}})'
+(\mathbf y-X\hat{\boldsymbol{\beta}})
+}{n-p}.
+\]
+
+Using
+
+\[
+(\mathbf y-X\boldsymbol{\beta})'
+(\mathbf y-X\boldsymbol{\beta})
+=
+(n-p)s^2
++
+(\boldsymbol{\beta}-\hat{\boldsymbol{\beta}})'
+X'X
+(\boldsymbol{\beta}-\hat{\boldsymbol{\beta}}),
+\]
+
+we obtain
+
+\[
+\boxed{
+\boldsymbol{\beta}\mid\tau,\mathbf y
+\sim
+N_p\left(
+\hat{\boldsymbol{\beta}},
+\frac{1}{\tau}(X'X)^{-1}
+\right)
+}
+\]
+
+and, after integrating out \(\boldsymbol{\beta}\),
+
+\[
+\boxed{
+\tau\mid\mathbf y
+\sim
+Ga\left(
+\frac{n-p}{2},
+\frac{(n-p)s^2}{2}
+\right)
+}
+\]
+
+where \(Ga(\cdot,\cdot)\) is parameterised by shape and rate.
+
+b) Use the \texttt{lm} function in R to fit the following model to female participants only (\texttt{sex} = 0): 
+
+\[ E(\text{height}) = \beta_\text{female} + \beta_1\text{mother}+\beta_2\text{father}+\beta_3\text{age}, \quad \mbox{Var(height)}=\sigma^2.\]
+**Task:** Based on the results obtained and the posterior distribution obtained in a), write down the specific form for the posterior distribution of $\tau$ and the conditional posterior distribution of $\bm{\beta}$ given $\tau$ and data. (Note: keep $\tau$ as a variable in the conditional posterior distribution of $\bm \beta$.) 
+```{r}
+mod1 <- lm(height ~ mother + father + age, data = data_f)
+summary(mod1)
+
+X_f <- model.matrix(mod1)
+
+n_f <- nrow(X_f)
+p_f <- ncol(X_f)
+
+beta_hat_f <- coef(mod1)
+s2_f <- sigma(mod1)^2
+XtX_inv_f <- solve(t(X_f) %*% X_f)
+
+tau_shape_f <- (n_f - p_f) / 2
+tau_rate_f <- (n_f - p_f) * s2_f / 2
+
+beta_hat_f
+s2_f
+round(XtX_inv_f, 6)
+tau_shape_f
+tau_rate_f
+```
+From the fitted model,
+
+\[
+\hat{\boldsymbol{\beta}}
+=
+\begin{pmatrix}
+163.97861\\
+0.41657\\
+0.46295\\
+-0.06872
+\end{pmatrix},
+\]
+
+where
+
+\[
+\boldsymbol{\beta}
+=
+(\beta_{\text{female}},\beta_1,\beta_2,\beta_3)'.
+\]
+
+Since \(n=300\) and \(p=4\),
+
+\[
+\frac{n-p}{2}=148.
+\]
+
+Therefore, using the result from part (a),
+
+\[
+\boxed{
+\tau\mid y
+\sim
+Ga\left(
+148,\,
+`r round(tau_rate_f,4)`
+\right)
+}
+\]
+
+where the Gamma distribution is parameterised by shape and rate.
+
+Also,
+
+\[
+\boxed{
+\boldsymbol{\beta}\mid\tau,y
+\sim
+N_4\left(
+\begin{pmatrix}
+163.97861\\
+0.41657\\
+0.46295\\
+-0.06872
+\end{pmatrix},
+\frac{1}{\tau}(X'X)^{-1}
+\right)
+}
+\]
+
+where
+
+\[
+(X'X)^{-1}
+=
+\begin{pmatrix}
+`r paste(format(round(XtX_inv_f[1,],7), scientific=FALSE), collapse=" & ")`\\
+`r paste(format(round(XtX_inv_f[2,],7), scientific=FALSE), collapse=" & ")`\\
+`r paste(format(round(XtX_inv_f[3,],7), scientific=FALSE), collapse=" & ")`\\
+`r paste(format(round(XtX_inv_f[4,],7), scientific=FALSE), collapse=" & ")`
+\end{pmatrix}.
+\]
+
+c) Use the \texttt{lm} function in R to fit the following linear regression model to all participants:
+
+\[ E(\text{height}) =\beta_\text{male} + \beta_\text{female}+ \beta_1\text{mother}+\beta_2\text{father}+\beta_3\text{age}, \quad \mbox{Var(height)}=\sigma^2.\]
+
+To do this, assume the dataset was imported as *data* and then run the following command.
+
+```{r,eval=FALSE}
+mod2<-lm(height~0+sex+I(1-sex)+mother+father+age,data=data)
+```
+
+Write $\bm{\beta}=(\beta_\text{male},\beta_\text{female},\beta_1,\beta_2,\beta_3)^\prime$.
+
+**Task I:**
+Report $\hat{\bm \beta}$, and the associated 95 \% confidence intervals based on the above \texttt{lm} output.
+The model was fitted using
+
+```{r}
+mod2<-lm(height~0+sex+I(1-sex)+mother+father+age,data=data)
+summary(mod2)
+
+beta_hat <- coef(mod2)
+CI_beta <- confint(mod2)
+
+beta_hat
+CI_beta
+```
+**Note:** One way to build the design matrix $\bf X$ here is:  1). set the column associated with $\beta_\text{male}$ to 1 for male participants and to 0 for female participants; 2). set the column associated with $\beta_\text{female}$ to 1 for female participants and to 0 for male participants; 3). The remaining columns of $\mathbf{X}$ are filled with the covariate values for mother, father and age, respectively.
+
+Suppose we want to use a Gibbs sampler to generate samples of $\bm{\beta}=(\beta_\text{male},\beta_\text{female},\beta_1,\beta_2,\beta_3)^\prime$ and $\tau=(\sigma^2)^{-1}$ such that the stationary distribution of the associated Markov chain equals the posterior pdf of 
+$(\beta_\text{male},\beta_\text{female},\beta_1,\beta_2,\beta_3, \tau)$.
+Then we use the generated posterior samples of $\bm{\beta}$ and $\tau$ to perform a Bayesian inferential analysis on the above regression model. The process is described as following:
+
+**Bayesian computing and analysis**
+\begin{enumerate}
+\item
+The prior of $\tau$ is set to be the marginal posterior of $\tau$ found in b). The
+prior of $\beta_\text{male}$ is set to be normal with mean 173 and variance 20.
+The prior of $(\beta_\text{female}, \beta_1, \beta_2, \beta_3)$ is set to be the conditional posterior of $(\beta_\text{female}, \beta_1, \beta_2, \beta_3)$ given $\tau$ found in b), where $\tau$ is set equal to its maximum likelihood estimate computed in b). Note the above three priors are set independently of each other. 
+
+Find the conditional posterior pdf of $(\beta_\text{male},\beta_\text{female},\beta_1,\beta_2,\beta_3)$ and $\tau$, respectively. Note the block Gibbs sampler requires these two conditional posterior pdf's.
+For help in determining the necessary conditional posteriors, refer to lecture 14 and weeks 7 \& 8 Labs. 
+
+Let
+
+\[
+\boldsymbol{\beta}
+=
+(\beta_{\text{male}},
+\beta_{\text{female}},
+\beta_1,\beta_2,\beta_3)'.
+\]
+
+From part (b), let
+
+\[
+\tau \sim Ga(a_0,b_0),
+\]
+
+where
+
+\[
+a_0=148,
+\qquad
+b_0=\text{the posterior rate obtained in part (b)}.
+\]
+
+The prior for \(\beta_{\text{male}}\) is
+
+\[
+\beta_{\text{male}}\sim N(173,20).
+\]
+
+For the remaining coefficients, define
+
+\[
+\boldsymbol{\beta}_f
+=
+(\beta_{\text{female}},\beta_1,\beta_2,\beta_3)'.
+\]
+
+From part (b),
+
+\[
+\boldsymbol{\beta}_f
+\sim
+N_4
+\left(
+\hat{\boldsymbol{\beta}}_f,
+\frac{1}{\hat{\tau}_f}(X_f'X_f)^{-1}
+\right),
+\]
+
+where \(\hat{\tau}_f\) is the maximum likelihood estimate of \(\tau\) from the female-only model.
+
+Since these priors are independent, the prior for the full coefficient vector can be written as
+
+\[
+\boldsymbol{\beta}\sim N_5(\boldsymbol{\mu}_0,V_0),
+\]
+
+where
+
+\[
+\boldsymbol{\mu}_0
+=
+\begin{pmatrix}
+173\\
+163.97861\\
+0.41657\\
+0.46295\\
+-0.06872
+\end{pmatrix},
+\]
+
+and
+
+\[
+V_0
+=
+\begin{pmatrix}
+20 & \mathbf 0'\\
+\mathbf 0 &
+\displaystyle
+\frac{1}{\hat{\tau}_f}(X_f'X_f)^{-1}
+\end{pmatrix}.
+\]
+
+For the full dataset,
+
+\[
+\mathbf y\mid\boldsymbol{\beta},\tau
+\sim
+N(X\boldsymbol{\beta},\tau^{-1}I).
+\]
+
+Therefore, combining the likelihood with the normal prior,
+
+\[
+\boxed{
+\boldsymbol{\beta}\mid\tau,\mathbf y
+\sim
+N_5(\boldsymbol{\mu}_n,V_n)
+}
+\]
+
+where
+
+\[
+V_n
+=
+\left(
+\tau X'X+V_0^{-1}
+\right)^{-1},
+\]
+
+and
+
+\[
+\boldsymbol{\mu}_n
+=
+V_n
+\left(
+\tau X'\mathbf y+V_0^{-1}\boldsymbol{\mu}_0
+\right).
+\]
+
+For \(\tau\), combining the likelihood with the Gamma prior gives
+
+\[
+\boxed{
+\tau\mid\boldsymbol{\beta},\mathbf y
+\sim
+Ga\left(
+a_0+\frac{n}{2},
+\;
+b_0+
+\frac{1}{2}
+(\mathbf y-X\boldsymbol{\beta})'
+(\mathbf y-X\boldsymbol{\beta})
+\right)
+}
+\]
+
+using the shape-rate parameterisation.
+
+\item
+Construct a block Gibbs sampler to generate posterior samples of 
+$\bm{\beta}=(\beta_\text{male},\beta_\text{female},\beta_1,\beta_2,\beta_3)^\prime$
+and $\tau$. Write down both the algorithm and the R function for this Gibbs sampler.
+
+From Step 1,
+
+\[
+\boldsymbol{\beta}\mid\tau,\mathbf y
+\sim
+N_5(\boldsymbol{\mu}_n,V_n),
+\]
+
+where
+
+\[
+V_n=
+\left(
+\tau X'X+V_0^{-1}
+\right)^{-1},
+\]
+
+and
+
+\[
+\boldsymbol{\mu}_n
+=
+V_n
+\left(
+\tau X'\mathbf y+V_0^{-1}\boldsymbol{\mu}_0
+\right).
+\]
+
+Also,
+
+\[
+\tau\mid\boldsymbol{\beta},\mathbf y
+\sim
+Ga\left(
+a_0+\frac{n}{2},
+\;
+b_0+
+\frac{1}{2}
+(\mathbf y-X\boldsymbol{\beta})'
+(\mathbf y-X\boldsymbol{\beta})
+\right).
+\]
+
+The block Gibbs sampler is constructed as follows. Choose an initial value
+\(\tau^{(0)}\). For \(t=1,\ldots,T\),
+
+\[
+V_n^{(t)}
+=
+\left(
+\tau^{(t-1)}X'X+V_0^{-1}
+\right)^{-1},
+\]
+
+\[
+\boldsymbol{\mu}_n^{(t)}
+=
+V_n^{(t)}
+\left(
+\tau^{(t-1)}X'\mathbf y+
+V_0^{-1}\boldsymbol{\mu}_0
+\right),
+\]
+
+and sample
+
+\[
+\boldsymbol{\beta}^{(t)}
+\sim
+N_5
+\left(
+\boldsymbol{\mu}_n^{(t)},
+V_n^{(t)}
+\right).
+\]
+
+Then sample
+
+\[
+\tau^{(t)}
+\sim
+Ga\left(
+a_0+\frac{n}{2},
+\;
+b_0+
+\frac{1}{2}
+(\mathbf y-X\boldsymbol{\beta}^{(t)})'
+(\mathbf y-X\boldsymbol{\beta}^{(t)})
+\right).
+\]
+
+The above two steps are repeated for the required number of iterations.
+
+```{r , include=FALSE}
+Gibbs.height <- function(X, y, tau0, iter, burnin,
+                         mu0, V0, a0, b0) {
+
+  n <- nrow(X)
+  p <- ncol(X)
+
+  XTX <- crossprod(X)
+  XTy <- crossprod(X, y)
+  V0_inv <- solve(V0)
+
+  tau <- tau0
+  par <- matrix(0, iter, p + 1)
+
+  for (i in 1:iter) {
+
+    # Conditional posterior of beta
+    Prec <- tau * XTX + V0_inv
+    Vn <- solve(Prec)
+    mun <- Vn %*% (tau * XTy + V0_inv %*% mu0)
+
+    beta <- mvtnorm::rmvnorm(
+      1,
+      mean = as.numeric(mun),
+      sigma = Vn
+    )
+    beta <- as.numeric(beta)
+
+    # Conditional posterior of tau
+    err <- y - X %*% beta
+
+    tau <- rgamma(
+      1,
+      shape = a0 + n / 2,
+      rate = b0 + 0.5 * sum(err^2)
+    )
+
+    # Store beta and sigma^2
+    par[i, ] <- c(beta, 1 / tau)
+  }
+
+  par <- par[-c(1:burnin), ]
+
+  colnames(par) <- c(
+    "beta_male",
+    "beta_female",
+    "beta1",
+    "beta2",
+    "beta3",
+    "sigma2"
+  )
+
+  return(par)
+}
+```
+
+The R function for the block Gibbs sampler is:
+
+\begin{footnotesize}
+\begin{verbatim}
+Gibbs.height <- function(X, y, tau0, iter, burnin,
+                         mu0, V0, a0, b0) {
+
+  n <- nrow(X)
+  p <- ncol(X)
+
+  XTX <- crossprod(X)
+  XTy <- crossprod(X, y)
+  V0_inv <- solve(V0)
+
+  tau <- tau0
+  par <- matrix(0, iter, p + 1)
+
+  for (i in 1:iter) {
+
+    Prec <- tau * XTX + V0_inv
+    Vn <- solve(Prec)
+    mun <- Vn %*% (tau * XTy + V0_inv %*% mu0)
+
+    beta <- mvtnorm::rmvnorm(
+      1,
+      mean = as.numeric(mun),
+      sigma = Vn
+    )
+    beta <- as.numeric(beta)
+
+    err <- y - X %*% beta
+
+    tau <- rgamma(
+      1,
+      shape = a0 + n / 2,
+      rate = b0 + 0.5 * sum(err^2)
+    )
+
+    par[i, ] <- c(beta, 1 / tau)
+  }
+
+  par <- par[-c(1:burnin), ]
+
+  colnames(par) <- c(
+    "beta_male",
+    "beta_female",
+    "beta1",
+    "beta2",
+    "beta3",
+    "sigma2"
+  )
+
+  return(par)
+}
+\end{verbatim}
+\end{footnotesize}
+
+\item
+Use the constructed Gibbs sampler and the \texttt{lm} results of the fitted regression model to generate two chains of $(\bm{\beta}^\prime,\tau)$, each of length 10,000, with the initial value of $\tau$ being 0.1 and 1, respectively, for each chain. Discard the first 1000 iterations of each chain as the warm-up period. When storing results, convert $\tau$ back to $\sigma^2$.  
+
+
+```{r, include=FALSE}
+# Full-data design matrix and response
+X <- model.matrix(mod2)
+y <- data$height
+
+# Prior for tau from part (b)
+a0 <- tau_shape_f
+b0 <- tau_rate_f
+
+# MLE of tau
+RSS_f <- sum(resid(mod1)^2)
+sigma2_mle_f <- RSS_f / n_f
+tau_mle_f <- 1 / sigma2_mle_f
+
+# Prior mean for beta
+mu0 <- c(
+  173,
+  beta_hat_f
+)
+
+# Prior covariance
+Vf <- XtX_inv_f / tau_mle_f
+
+V0 <- matrix(0, 5, 5)
+V0[1, 1] <- 20
+V0[2:5, 2:5] <- Vf
+
+#Gibbs chains
+chain1 <- Gibbs.height(
+  X = X,
+  y = y,
+  tau0 = 0.1,
+  iter = 10000,
+  burnin = 1000,
+  mu0 = mu0,
+  V0 = V0,
+  a0 = a0,
+  b0 = b0
+)
+
+chain2 <- Gibbs.height(
+  X = X,
+  y = y,
+  tau0 = 1,
+  iter = 10000,
+  burnin = 1000,
+  mu0 = mu0,
+  V0 = V0,
+  a0 = a0,
+  b0 = b0
+)
+```
+
+The R code used to generate the two chains is:
+
+\begin{footnotesize}
+\begin{verbatim}
+X <- model.matrix(mod2)
+y <- data$height
+
+a0 <- tau_shape_f
+b0 <- tau_rate_f
+
+RSS_f <- sum(resid(mod1)^2)
+sigma2_mle_f <- RSS_f / n_f
+tau_mle_f <- 1 / sigma2_mle_f
+
+mu0 <- c(173, beta_hat_f)
+
+Vf <- XtX_inv_f / tau_mle_f
+
+V0 <- matrix(0, 5, 5)
+V0[1, 1] <- 20
+V0[2:5, 2:5] <- Vf
+
+chain1 <- Gibbs.height(
+  X = X, y = y,
+  tau0 = 0.1,
+  iter = 10000,
+  burnin = 1000,
+  mu0 = mu0,
+  V0 = V0,
+  a0 = a0,
+  b0 = b0
+)
+
+chain2 <- Gibbs.height(
+  X = X, y = y,
+  tau0 = 1,
+  iter = 10000,
+  burnin = 1000,
+  mu0 = mu0,
+  V0 = V0,
+  a0 = a0,
+  b0 = b0
+)
+\end{verbatim}
+\end{footnotesize}
+
+Each chain contains 10,000 generated iterations, with the first 1,000
+discarded as warm-up. Therefore, 9,000 posterior samples are retained from
+each chain. The last column stores
+
+\[
+\sigma^2=\frac{1}{\tau}
+\]
+
+rather than \(\tau\), as required.
+
+\item
+Combine the two generated chains and report the posterior means, standard deviations and 95 \% central credible intervals for each component of $\bm{\beta}$ and $\sigma^2$. Also report the 95 \% central credible for $\beta_1 - \beta_2$, and give an interpretation regarding the effect of each parent on their child's height.
+
+```{r, include=FALSE}
+combined_chain <- rbind(chain1, chain2)
+
+post_summary <- cbind(
+  Mean = colMeans(combined_chain),
+  SD = apply(combined_chain, 2, sd),
+  t(apply(combined_chain, 2, quantile, c(0.025, 0.975)))
+)
+
+beta_diff <- combined_chain[, "beta1"] - combined_chain[, "beta2"]
+beta_diff_ci <- quantile(beta_diff, c(0.025, 0.975))
+```
+
+The posterior summaries are
+
+\begin{footnotesize}
+\begin{verbatim}
+`r paste(capture.output(round(post_summary,4)), collapse="\n")`
+\end{verbatim}
+\end{footnotesize}
+
+The 95\% central credible interval for
+\(\beta_1-\beta_2\) is
+
+\[
+\boxed{
+(`r round(beta_diff_ci[1],4)`,
+`r round(beta_diff_ci[2],4)`)
+}.
+\]
+Since the 95\% credible interval for \(\beta_1-\beta_2\) contains zero,
+there is insufficient posterior evidence that the effects of maternal and
+paternal height on the child's height are different.
+
+\item
+Use the test statistics $T(\mathbf{y},\bm{\beta}) = \text{cor}(\mathbf{y}-\mathbf{X}\bm{\beta}, \mathbf{X}\bm{\beta})$ and $T(\mathbf{y}^\text{rep},\bm{\beta},\tau) = \text{cor}(\mathbf{y}^\text{rep} -\mathbf{X}\bm{\beta}, \mathbf{X}\bm{\beta})$ to perform posterior predictive checking of the model, based on the combined generated chain of $(\bm{\beta}^\prime, \tau)$. Report the results in terms of the numeric and graphic summaries of $T(\mathbf{y},\bm{\beta})$ and $T(\mathbf{y}^\text{rep},\bm{\beta},\tau)$ values. Also report the Bayes $p$-values by comparing $T(\mathbf{y},\bm{\beta})$ and $T(\mathbf{y}^\text{rep},\bm{\beta},\tau)$ with
+$T(\mathbf{y},\hat{\bm{\beta}})$ and $T(\mathbf{y}^\text{rep},\hat{\bm{\beta}}, \hat{\tau})$, respectively, where $\hat{\bm{\beta}}$ and $\hat{\tau}$ are the maximum likelihood estimates obtained from the \texttt{lm} results.
+\end{enumerate}
+
+Posterior predictive checking was performed using
+
+\[
+T(\mathbf y,\boldsymbol{\beta})
+=
+\operatorname{cor}(\mathbf y-X\boldsymbol{\beta},
+X\boldsymbol{\beta}).
+\]
+
+```{r step5, include=FALSE}
+S <- nrow(combined_chain)
+
+T_y <- numeric(S)
+T_rep <- numeric(S)
+
+for (s in 1:S) {
+
+  beta_s <- combined_chain[s, 1:5]
+  sigma2_s <- combined_chain[s, "sigma2"]
+
+  fitted_s <- as.numeric(X %*% beta_s)
+
+  # Statistic for observed data
+  T_y[s] <- cor(y - fitted_s, fitted_s)
+
+  # Generate replicated data
+  y_rep <- rnorm(
+    length(y),
+    mean = fitted_s,
+    sd = sqrt(sigma2_s)
+  )
+
+  # Statistic for replicated data
+  T_rep[s] <- cor(y_rep - fitted_s, fitted_s)
+}
+
+# Standard posterior predictive Bayes p-value
+bayes_p <- mean(T_y <= T_rep)
+
+# MLE values
+beta_hat_mle <- coef(mod2)
+sigma2_hat_mle <- sum(resid(mod2)^2) / length(y)
+tau_hat_mle <- 1 / sigma2_hat_mle
+
+fitted_hat <- as.numeric(X %*% beta_hat_mle)
+
+T_y_hat <- cor(
+  y - fitted_hat,
+  fitted_hat
+)
+
+# Numerical summaries
+T_summary <- rbind(
+  T_y = c(
+    Mean = mean(T_y),
+    SD = sd(T_y),
+    quantile(T_y, c(0.025, 0.975))
+  ),
+  T_rep = c(
+    Mean = mean(T_rep),
+    SD = sd(T_rep),
+    quantile(T_rep, c(0.025, 0.975))
+  )
+)
+
+# Graphic summary
+png("PPC_step5.png", width = 900, height = 450)
+par(mfrow = c(1, 2))
+
+hist(T_y,
+     main = "T(y, beta)",
+     xlab = "Test statistic")
+abline(v = T_y_hat, lwd = 2)
+
+hist(T_rep,
+     main = "T(yrep, beta, tau)",
+     xlab = "Test statistic")
+
+dev.off()
+
+# Compare with MLE-based statistics
+p_Ty <- mean(T_y <= T_y_hat)
+
+T_rep_hat <- numeric(S)
+
+for (s in 1:S) {
+  y_rep_hat <- rnorm(
+    length(y),
+    mean = fitted_hat,
+    sd = sqrt(sigma2_hat_mle)
+  )
+
+  T_rep_hat[s] <- cor(
+    y_rep_hat - fitted_hat,
+    fitted_hat
+  )
+}
+
+p_Trep <- mean(T_rep <= T_rep_hat)
+```
+
+The numerical summaries are
+
+\begin{footnotesize}
+\begin{verbatim}
+`r paste(capture.output(round(T_summary,4)), collapse="\n")`
+\end{verbatim}
+\end{footnotesize}
+
+The posterior predictive Bayes \(p\)-value is
+
+\[
+\boxed{
+p_B=`r round(bayes_p,4)`
+}.
+\]
+
+\begin{center}
+\includegraphics[width=0.9\textwidth]{PPC_step5.png}
+\end{center}
+The distributions of \(T(\mathbf y,\boldsymbol{\beta})\) and
+\(T(\mathbf y^{rep},\boldsymbol{\beta},\tau)\) are both centred close to zero
+and show substantial overlap. The posterior predictive Bayes \(p\)-value is
+0.5348.
+
+The MLE-based Bayes \(p\)-values are
+
+\[
+p_1=0.5567,
+\qquad
+p_2=0.5041.
+\]
+
+Since all three \(p\)-values are close to 0.5, the observed and MLE-based test
+statistics are not unusual relative to the posterior predictive distributions.
+Therefore, there is no clear evidence of model misfit based on this test
+statistic.
+
+**Task II:** 
+Complete the above 5 steps and answer the questions therein.
+
+
+d) Perform convergence checks for the chains obtained in c). Report both graphical summaries and Gelman-Rubin diagnostic results. For the calculation of Gelman-Rubin diagnostics, you will need to install the R package \texttt{coda}. An example of processing chains for calculating Gelman-Rubin diagnostics is given below.
+
+\begin{footnotesize}
+\begin{verbatim}
+      Processing chains for calculation of Gelman-Rubin diagnostics. Imagine you have 4 chains of
+      a multi-parameter problem, and thinning already completed, called par1,par2,par3,par4
+
+      Step one: Converting the chains into mcmc lists.
+      library(coda)
+      par1<-as.mcmc.list(as.mcmc((par1)))
+      par2<-as.mcmc.list(as.mcmc((par2)))
+      par3<-as.mcmc.list(as.mcmc((par3)))
+      par4<-as.mcmc.list(as.mcmc((par4)))
+
+      Step two: Calculating diagnostics
+      
+      par.all<-c(par1,par2,par3,par4)
+      gelman.diag(par.all)
+\end{verbatim}
+\end{footnotesize}
+
+Convergence was checked using trace plots and the Gelman--Rubin diagnostic.
+
+```{r convergence}
+library(coda)
+
+# Convert the two chains to mcmc objects
+mcmc1 <- mcmc(chain1)
+mcmc2 <- mcmc(chain2)
+
+chains <- mcmc.list(mcmc1, mcmc2)
+
+# Trace plots
+traceplot(chains)
+
+# Gelman-Rubin diagnostic
+gelman_result <- gelman.diag(chains)
+gelman_result
+```
+
+The trace plots show good mixing and substantial overlap between the two
+chains, with no obvious trends or separation.
+
+The Gelman--Rubin potential scale reduction factors are approximately 1 for
+all parameters, and the multivariate PSRF is also 1. These results provide
+strong evidence that the two chains have converged to the same target
+distribution.
+
+e) One question of interest is whether there exists significant interaction between gender and parental height. The analysis done earlier ignored any interaction effect. Based on the results of posterior predictive checking mentioned in c), do you think there exist such interaction effects? 
+
+The posterior predictive checks show no clear evidence of model misfit.
+The distributions of \(T(\mathbf y,\boldsymbol{\beta})\) and
+\(T(\mathbf y^{rep},\boldsymbol{\beta},\tau)\) overlap substantially, and
+the Bayes \(p\)-values are all close to 0.5.
+
+Therefore, based on this posterior predictive check, there is no clear
+evidence that interaction effects between gender and parental height are
+required in the model.
+
+## Question Three (13 marks)
+
+In generalised linear models, we model the effects of the covariates on the response variable through a link function, $\eta(\bm \theta)$, and assume $\eta(\bm \theta)_i = {\bf x}_i'\bm \beta$. The link function can be determined by re-arranging the likelihood of interest into an exponential family form,   
+\begin{eqnarray} p(y|\bm \theta) = f(y)g(\bm \theta)e^{\eta(\bm \theta)'u(y)}. \end{eqnarray} 
+
+a) Re-arrange the Binomial probability mass function into the exponential family format to determine the link function. The Binomial pmf is
+\[ Pr(y|n,p) = {{n}\choose{y}}p^{y}(1-p)^{n-y}.  \]
+
+
+To explore some properties of Metropolis-Hasting sampling, consider the dataset \texttt{CovidAustralia.csv}, which can be downloaded from Canvas. This dataset contains the total number of cases and deaths by age group (30-39,40-49,50-59,60-69,70-79,80-89,90+) and gender (male/female) as of 29 August 2020. 
+
+b) Fit a logistic regression to the Covid data, with age group and gender treated as factors, without interactions, using the function glm. Report co-efficient estimates and the variance-covariance matrix. If the co-efficient estimates can be regarded as the maximum *a posteriori* (MAP) estimates, what prior have we assumed for $\bm \beta$?  
+
+c) Perform Bayesian logistic regression analysis using Metropolis-Hasting sampling. Note the generalized linear regression with logit link function can be expressed as
+\begin{eqnarray}
+{ y}_i &\sim & \text{Binomial}(n_i,p_i) \nonumber \\
+\text{logit}(p_i)&=& {\bf x}_i'\bm \beta, \quad \text{where} \quad \text{logit}(p_i)=\text{ln}\Big(\frac{p_i}{1-p_i}\Big) \nonumber 
+\end{eqnarray}
+
+Use the prior of $\bm \beta$ determined in b) in the analysis. Extract the design matrix $\bf X$ from the glm output. Use a multivariate normal distribution with mean $\bm \beta^{(t-1)}$ (i.e. the generated $\bm \beta$ at step $t-1$) and variance-covariance matrix $c^2\hat{\bm \Sigma}$ as the proposal distribution, where $\hat{\bm{\Sigma}}$ is the variance-covariance matrix from the glm fit. Consider three candidates for $c$: $1.6/\sqrt{p},\; 2.4/\sqrt{p},\; 3.2/\sqrt{p}$, where $p$ is the number of parameters estimated. Run the Metropolis-Hasting algorithm for 10000 iterations, and discard the first 5000. Report the following:
+
+\begin{itemize}
+\item Check each generated chain converges to the same distribution. To do this, you may find installing the R package \texttt{coda} helpful.
+\item The proportion of candidate draws that are accepted.
+\item The effective sample size for each chain. 
+\item Based on your results to the above bullet points, what do you think is the best choice for $c$? 
+\end{itemize}
+
+\textit{Hint: You can refer to "Group-level: Proportion data" in http://www.simonqueenborough.info/R/statistics/glm-binomial to see how to get the initial estimation using glm function in R.}

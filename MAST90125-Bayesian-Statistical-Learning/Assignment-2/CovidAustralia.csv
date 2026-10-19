@@ -1,0 +1,15 @@
+Age_group,Cases,Deaths,Gender
+30-39,2166,2,male
+40-49,1602,2,male
+50-59,1412,7,male
+60-69,1080,18,male
+70-79,788,65,male
+80-89,451,107,male
+90+,212,72,male
+30-39,2177,0,female
+40-49,1568,0,female
+50-59,1548,3,female
+60-69,1111,8,female
+70-79,692,37,female
+80-89,700,120,female
+90+,493,103,female
